@@ -14,7 +14,7 @@ index = ['Adresse',
         "Consommation annuelle moyenne de la commune (MWh)"]
 
 
-df = pd.read_csv("smart_output3.csv",sep=';')
+df = pd.read_csv("consommation-annuelle-residentielle-par-adresse.csv",sep=';')
 df = df[index]
-
+df = df.dropna()
 df.to_csv("workable_data.csv")

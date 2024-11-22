@@ -23,6 +23,7 @@ communes = df["Code Commune"].unique()
 nom_commune = df["Nom Commune"].unique()
 commune_conso = df["Consommation annuelle moyenne de la commune (MWh)"].unique()
 
+
 adress = df["Adresse"]
 nombre_logements = df["Nombre de logements"]
 
@@ -62,9 +63,10 @@ conso_logement = df["Consommation annuelle moyenne par logement de l'adresse (MW
 #         (i+1,
 #         int(communes[i]),
 #         nom_commune[i],
-#          commune_conso[i],
+#         df["Consommation annuelle moyenne de la commune (MWh)"].iloc[np.where(df["Code Commune"] == communes[i])[0][0]],
 #         int(np.where(departements == FindDepartementCommune(df,communes[i]))[0][0]+1)
 #         ))
+    
 
 # for i in range(len(adress)):
 #     cur.execute(
@@ -74,19 +76,19 @@ conso_logement = df["Consommation annuelle moyenne par logement de l'adresse (MW
 #         adress[i],
 #         int(nombre_logements[i]))
 #     )
+ 
 
+# for i,conso in enumerate(conso_logement):
+#     cur.execute(
+#         "INSERT INTO ConsommationParSegmentAnnee VALUES(?,?,?,?,?)",
+#         (i+1,
+#         int(np.where(annees == df["Année"][i])[0][0])+1,
+#         int(np.where(sdcs == df["Segment de client"][i])[0][0])+1,
+#         int(np.where(adress == df["Adresse"][i])[0][0])+1,
+#         conso
+#         )
 
-for i,conso in enumerate(conso_logement):
-    cur.execute(
-        "INSERT INTO ConsommationParSegmentAnnee VALUES(?,?,?,?,?)",
-        (i+1,
-        int(np.where(annees == df["Année"][i])[0][0])+1,
-        int(np.where(sdcs == df["Segment de client"][i])[0][0])+1,
-        int(np.where(adress == df["Adresse"][i])[0][0])+1,
-        conso
-        )
-
-    )
+#     )
 
 
 
