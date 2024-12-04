@@ -1,13 +1,16 @@
-"# Connexion à la base de données avec SQLAlchemy" 
 from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import declarative_base, sessionmaker
 
-# Connexion à votre base de données MySQL distante
-DATABASE_URL = "mysql+pymysql://if0_37743569:Simplon13@sql203.infinityfree.com/if0_37743569_sasdata"
+# URL de connexion avec encodage des caractères spéciaux pour le mot de passe
+DATABASE_URL = "mysql+pymysql://freedb_simplon13:MyjK%40J33Hf%23zR7S@sql.freedb.tech/freedb_datasasia"
 
+# Configuration du moteur SQLAlchemy
 engine = create_engine(DATABASE_URL)
+
+# Configuration de la session
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+# Base pour les modèles SQLAlchemy
 Base = declarative_base()
 
 # Fonction pour obtenir une session de base de données
