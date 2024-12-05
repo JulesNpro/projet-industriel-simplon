@@ -3,6 +3,18 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import plotly.express as px
 import requests
+import logging
+
+# Configuration du logger
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    handlers=[
+        logging.FileHandler("streamlit_app.log"),  # Logs dans un fichier
+        logging.StreamHandler()  # Logs dans la console
+    ]
+)
+logger = logging.getLogger("streamlit_logger")
 
 # URL de base de l'API FastAPI
 API_URL = "http://127.0.0.1:8000"  # Endpoint fast api
@@ -17,9 +29,12 @@ option = st.sidebar.selectbox(
         "Afficher une entrée",
         "Ajouter une entrée",
         "Supprimer une entrée",
-        "Visualisations des Données"
+        "Visualisations des Données",
+        "Prédictions"
     ]
 )
+
+logger.info(f"Action sélectionnée : {option}")
 
 if option == "Afficher toutes les entrées":
     st.header("Toutes les entrées de Datasasia")
@@ -28,10 +43,13 @@ if option == "Afficher toutes les entrées":
         if response.status_code == 200:
             datas = response.json()
             st.dataframe(pd.DataFrame(datas))
+            logger.info("Données récupérées avec succès.")
         else:
             st.error(f"Erreur : {response.status_code} - {response.text}")
+            logger.error(f"Erreur lors de la récupération des données : {response.text}")
     except Exception as e:
         st.error(f"Erreur de connexion à l'API : {e}")
+        logger.exception("Erreur de connexion à l'API")
 
 elif option == "Afficher une entrée":
     st.header("Afficher une entrée spécifique")
@@ -41,10 +59,13 @@ elif option == "Afficher une entrée":
             response = requests.get(f"{API_URL}/datasasia/{datas_id}")
             if response.status_code == 200:
                 st.write(response.json())
+                logger.info(f"Entrée avec ID {datas_id} récupérée avec succès.")
             else:
                 st.error(f"Erreur : {response.status_code} - {response.text}")
+                logger.error(f"Erreur lors de la récupération de l'entrée {datas_id} : {response.text}")
         except Exception as e:
             st.error(f"Erreur de connexion à l'API : {e}")
+            logger.exception(f"Erreur de connexion à l'API lors de la récupération de l'entrée {datas_id}")
 
 elif option == "Ajouter une entrée":
     st.header("Ajouter une nouvelle entrée")
@@ -78,10 +99,13 @@ elif option == "Ajouter une entrée":
             response = requests.post(f"{API_URL}/datasasia", json=data)
             if response.status_code == 200:
                 st.success("Entrée ajoutée avec succès!")
+                logger.info("Nouvelle entrée ajoutée avec succès.")
             else:
                 st.error(f"Erreur : {response.status_code} - {response.text}")
+                logger.error(f"Erreur lors de l'ajout d'une entrée : {response.text}")
         except Exception as e:
             st.error(f"Erreur de connexion à l'API : {e}")
+            logger.exception("Erreur de connexion à l'API lors de l'ajout d'une entrée")
 
 elif option == "Supprimer une entrée":
     st.header("Supprimer une entrée")
@@ -91,84 +115,73 @@ elif option == "Supprimer une entrée":
             response = requests.delete(f"{API_URL}/datasasia/{datas_id}")
             if response.status_code == 200:
                 st.success("Entrée supprimée avec succès!")
+                logger.info(f"Entrée avec ID {datas_id} supprimée avec succès.")
             else:
                 st.error(f"Erreur : {response.status_code} - {response.text}")
+                logger.error(f"Erreur lors de la suppression de l'entrée {datas_id} : {response.text}")
         except Exception as e:
             st.error(f"Erreur de connexion à l'API : {e}")
+            logger.exception(f"Erreur de connexion à l'API lors de la suppression de l'entrée {datas_id}")
 
 elif option == "Visualisations des Données":
     st.header("Visualisations des Données de Consommation Énergétique")
+    try:
+        response = requests.get(f"{API_URL}/datasasia")
+        if response.status_code == 200:
+            data = response.json()
+            df = pd.DataFrame(data)
+            st.write("Données récupérées :")
+            st.dataframe(df)
 
-    # Exemple de données pour les graphiques
-    data = {
-        "Année": [2015, 2016, 2017, 2018, 2019, 2020],
-        "Consommation Totale (kWh)": [200, 220, 230, 250, 270, 300],
-        "Consommation Moyenne par Logement": [120, 140, 150, 200, 240, 300],
-        "Nombre de Logements": [10, 20, 30, 40, 50, 60],
-        "Nom Commune": ["Paris", "Lyon", "Marseille", "Toulouse", "Nice", "Nantes"],
-        "Segment": ["Résidentiel", "Commercial", "Industriel", "Agricole", "Résidentiel", "Commercial"],
-    }
+            graph_type = st.selectbox(
+                "Choisissez un type de graphique",
+                ["Histogramme", "Graphique Linéaire", "Graphique en Secteurs", "Nuage de Points"]
+            )
 
-    df = pd.DataFrame(data)
+            if graph_type == "Histogramme":
+                st.subheader("Histogramme de la Consommation Moyenne")
+                fig = px.histogram(df, x="consommation_annuelle_moyenne_par_logement", title="Distribution des Consommations Moyennes")
+                st.plotly_chart(fig)
 
-    # Sélection du graphique
-    graph_type = st.selectbox(
-        "Choisissez un type de graphique",
-        ["Histogramme", "Graphique Linéaire", "Graphique en Secteurs", "Nuage de Points"]
-    )
+            elif graph_type == "Graphique Linéaire":
+                st.subheader("Évolution de la Consommation Totale")
+                fig = px.line(df, x="annee", y="consommation_annuelle_totale", title="Évolution de la Consommation Totale")
+                st.plotly_chart(fig)
 
-    # Histogramme
-    if graph_type == "Histogramme":
-        st.subheader("Histogramme de la Consommation Moyenne")
-        fig = px.histogram(
-            df,
-            x="Consommation Moyenne par Logement",
-            nbins=5,
-            title="Distribution des Consommations Moyennes",
-            labels={"Consommation Moyenne par Logement": "Consommation Moyenne (kWh)"},
-        )
-        st.plotly_chart(fig)
+            elif graph_type == "Graphique en Secteurs":
+                st.subheader("Répartition des Consommations par Segment")
+                fig = px.pie(df, names="segment_de_client", values="consommation_annuelle_totale", title="Répartition des Consommations")
+                st.plotly_chart(fig)
 
-    # Graphique linéaire
-    elif graph_type == "Graphique Linéaire":
-        st.subheader("Évolution de la Consommation Totale")
-        fig, ax = plt.subplots()
-        ax.plot(df["Année"], df["Consommation Totale (kWh)"], marker="o", linestyle="-")
-        ax.set_title("Évolution de la Consommation Totale")
-        ax.set_xlabel("Année")
-        ax.set_ylabel("Consommation Totale (kWh)")
-        st.pyplot(fig)
+            elif graph_type == "Nuage de Points":
+                st.subheader("Relation entre Logements et Consommation Moyenne")
+                fig = px.scatter(df, x="nombre_de_logements", y="consommation_annuelle_moyenne_par_logement", title="Relation Logements vs Consommation")
+                st.plotly_chart(fig)
 
-    # Graphique en secteurs
-    elif graph_type == "Graphique en Secteurs":
-        st.subheader("Répartition de la Consommation par Segment")
-        segment_data = {
-            "Segment": ["Résidentiel", "Commercial", "Industriel", "Agricole"],
-            "Consommation Totale": [500, 300, 150, 50],
-        }
-        segment_df = pd.DataFrame(segment_data)
-        fig = px.pie(
-            segment_df,
-            names="Segment",
-            values="Consommation Totale",
-            title="Répartition de la Consommation par Segment",
-            hole=0.4,  # Donut chart
-        )
-        st.plotly_chart(fig)
+            logger.info("Visualisations affichées avec succès.")
+        else:
+            st.error(f"Erreur : {response.status_code} - {response.text}")
+            logger.error(f"Erreur lors de la récupération des données pour visualisation : {response.text}")
+    except Exception as e:
+        st.error(f"Erreur de connexion à l'API : {e}")
+        logger.exception("Erreur lors de la visualisation des données")
 
-    # Nuage de points
-    elif graph_type == "Nuage de Points":
-        st.subheader("Relation entre le Nombre de Logements et la Consommation Moyenne")
-        fig = px.scatter(
-            df,
-            x="Nombre de Logements",
-            y="Consommation Moyenne par Logement",
-            size="Consommation Moyenne par Logement",
-            color="Nom Commune",
-            title="Relation entre Nombre de Logements et Consommation Moyenne",
-            labels={
-                "Nombre de Logements": "Nombre de Logements",
-                "Consommation Moyenne par Logement": "Consommation Moyenne (kWh)",
-            },
-        )
-        st.plotly_chart(fig)
+elif option == "Prédictions":
+    st.header("Prédictions sur la Consommation Moyenne")
+    annee = st.number_input("Année", min_value=1900, max_value=2100, step=1, value=2023)
+    nombre_de_logements = st.number_input("Nombre de Logements", min_value=1, step=1, value=10)
+
+    if st.button("Faire une prédiction"):
+        input_data = {"Année": annee, "Nombre de Logements": nombre_de_logements}
+        try:
+            response = requests.post(f"{API_URL}/predict", json=input_data)
+            if response.status_code == 200:
+                result = response.json()
+                st.success(f"Prédiction : {result['prediction']:.2f} kWh")
+                logger.info(f"Prédiction effectuée avec succès : {result}")
+            else:
+                st.error(f"Erreur : {response.status_code} - {response.text}")
+                logger.error(f"Erreur lors de la prédiction : {response.text}")
+        except Exception as e:
+            st.error(f"Erreur de connexion à l'API : {e}")
+            logger.exception("Erreur de connexion à l'API lors de la prédiction")
