@@ -18,7 +18,7 @@ logging.basicConfig(
 logger = logging.getLogger("streamlit_logger")
 
 # Charger le modèle de prédiction
-MODEL_PATH = "ml/random_forest_model.pkl"  # Chemin vers votre modèle
+MODEL_PATH = "ml/random_forest_model.pkl"  # Chemin vers le modèle sauvegardé
 try:
     with open(MODEL_PATH, "rb") as file:
         model = pickle.load(file)
@@ -96,22 +96,22 @@ elif option == "Prédictions":
     windspeed = st.number_input("WindSpeed (m/s)", format="%.2f")
     general_diffuse_flows = st.number_input("General Diffuse Flows", format="%.2f")
     diffuse_flows = st.number_input("Diffuse Flows", format="%.2f")
-
+    
     # Bouton pour exécuter la prédiction
     if st.button("Faire une prédiction"):
         try:
             # Préparer les données pour le modèle
             input_data = pd.DataFrame({
-                "Temperature": [temperature],
-                "Humidity": [humidity],
-                "WindSpeed": [windspeed],
-                "GeneralDiffuseFlows": [general_diffuse_flows],
-                "DiffuseFlows": [diffuse_flows]
+                "temperature": [temperature],
+                "humidity": [humidity],
+                "windspeed": [windspeed],
+                "general_diffuse_flows": [general_diffuse_flows],
+                "diffuse_flows": [diffuse_flows]
             })
-
+            
             # Faire une prédiction
             prediction = model.predict(input_data)
-
+            
             # Afficher le résultat
             st.success(f"Prédiction : La consommation énergétique prévue est de {prediction[0]:.2f} kWh")
             logger.info(f"Prédiction réussie : {prediction[0]:.2f} kWh")
