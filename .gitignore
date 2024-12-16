@@ -3,7 +3,7 @@ __pycache__/
 *.py[cod] 
 
 #data
-clean_data.csv
+
 powerconsumption.csv
 # Ignorer les environnements virtuels 
 venv/ 
