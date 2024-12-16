@@ -1,7 +1,6 @@
-# Installation 
-
+# SAS_IA 
 **Virtual environnement**
-```powershell
+```bash
 python -m venv .venv
 ```
 > .venv is the name of the virtual environnement 
@@ -13,12 +12,22 @@ python -m venv .venv
 - windows
 `.venv/Scripts/activate` or `.venv/Scripts/activate.ps1` 
 
+## Description 
+Brève description de votre projet, ses objectifs, et comment l'utiliser. 
+
 **create requirements.txt from pip**
 `pip freeze > requirements.txt`
 
-in a new environnement install the librairies
-**install librairies**.
-`pip install -r requirements.txt`
-
-**quit venv**
-`deactivate` 
+## Installation 
+```bash 
+pip install -r requirements.txt 
+``` 
+ 
+## Utilisation 
+Instructions pour exécuter l'application. 
+ 
+## Tests 
+Pour exécuter les tests, utilisez : 
+```bash 
+pytest 
+``` 
