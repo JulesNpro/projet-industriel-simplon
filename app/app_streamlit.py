@@ -18,7 +18,7 @@ logging.basicConfig(
 logger = logging.getLogger("streamlit_logger")
 
 # Charger le modèle de prédiction
-MODEL_PATH = "ml/random_forest_model.pkl"  # Chemin vers votre modèle
+MODEL_PATH = "ml/modeljose.pkl"  # Chemin vers votre modèle
 try:
     with open(MODEL_PATH, "rb") as file:
         model = pickle.load(file)
