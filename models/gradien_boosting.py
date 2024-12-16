@@ -1,5 +1,5 @@
 from sklearn.ensemble import GradientBoostingRegressor
-from sklearn.model_selection import train_test_split,cross_val_score
+from sklearn.model_selection import train_test_split,cross_val_score, RandomizedSearchCV
 import numpy as np
 from sklearn.metrics import r2_score, confusion_matrix, ConfusionMatrixDisplay
 from sklearn.linear_model import LinearRegression, Lasso
@@ -36,12 +36,12 @@ gb_model = GradientBoostingRegressor(n_estimators=100, learning_rate=0.5, max_de
 # parameter range definition
 
 param_space = {
-    'alpha': [0.1, 1.0, 10.0],  # Parámetro de regularización
-    'fit_intercept': [True, False]  # Ajustar la intersección
-    
-    }
-  
-grid = GridSearchCV(regr, param_space,cv=10, refit=True, verbose=1)
+    'n_estimators': [50, 100],  # Número de árboles
+    'learning_rate': [0.01, 0.1],  # Tasa de aprendizaje
+    'max_depth': [3, 5]
+}
+
+grid = RandomizedSearchCV(gb_model, param_space,cv=5,n_iter=5, refit=True, verbose=1, random_state=42)
 # Entraînez le modèle en utilisant les ensembles d'entraînement
 grid_search = grid.fit( x_train ,  y_train )
 
@@ -68,8 +68,8 @@ print("Scores R² en validation croisée :", cv_scores)
 print("Score R² moyen :", np.mean(cv_scores))
 
 # Sauvegarde du modèle
-joblib.dump(best_model, '../models/Rgression_Lineal.pkl')
-print("Modèle Random Forest Regression sauvegarder.")
+joblib.dump(best_model, '../models/Gradien_boosting_regressor.pkl')
+print("Modèle Gradien boosting sauvegarder.")
 
 plt.scatter(y_test, y_pred)
 plt.xlabel("Valeurs Réelles")
