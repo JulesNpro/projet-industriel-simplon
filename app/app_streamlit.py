@@ -1,9 +1,10 @@
 import streamlit as st
 import pandas as pd
-import matplotlib.pyplot as plt
 import plotly.express as px
-import requests
 import logging
+import pickle
+import datetime
+import requests
 
 # Configuration du logger
 logging.basicConfig(
@@ -16,9 +17,20 @@ logging.basicConfig(
 )
 logger = logging.getLogger("streamlit_logger")
 
-# URL de base de l'API FastAPI
-API_URL = "http://127.0.0.1:8000"  # Endpoint fast api
+# Charger le modèle Random Forest (PKL)
+MODEL_PATH = "ml\random_forest_model.pkl"  # Remplace par le chemin exact vers ton fichier PKL
+try:
+    with open(MODEL_PATH, "rb") as file:
+        model = pickle.load(file)
+        logger.info("Modèle Random Forest chargé avec succès.")
+except Exception as e:
+    logger.error(f"Erreur lors du chargement du modèle : {e}")
+    st.error("Impossible de charger le modèle de prédiction. Vérifiez le fichier PKL.")
 
+# URL de base de l'API FastAPI
+API_URL = "http://127.0.0.1:8000"  # Lien vers ton API FastAPI
+
+# Titre de l'application
 st.title("Interface Streamlit pour Datasasia")
 
 # Choisir l'action à effectuer
@@ -36,77 +48,81 @@ option = st.sidebar.selectbox(
 
 logger.info(f"Action sélectionnée : {option}")
 
+# **Afficher toutes les entrées depuis l'API**
 if option == "Afficher toutes les entrées":
     st.header("Toutes les entrées de Datasasia")
     try:
+        # Récupération des données depuis l'API
         response = requests.get(f"{API_URL}/datasasia")
         if response.status_code == 200:
             datas = response.json()
-            st.dataframe(pd.DataFrame(datas))
-            logger.info("Données récupérées avec succès.")
+            df = pd.DataFrame(datas)
+            st.dataframe(df)
+            logger.info("Données récupérées avec succès depuis l'API.")
         else:
             st.error(f"Erreur : {response.status_code} - {response.text}")
             logger.error(f"Erreur lors de la récupération des données : {response.text}")
     except Exception as e:
         st.error(f"Erreur de connexion à l'API : {e}")
-        logger.exception("Erreur de connexion à l'API")
+        logger.exception("Erreur de connexion à l'API lors de la récupération des données.")
 
+# **Afficher une entrée spécifique**
 elif option == "Afficher une entrée":
     st.header("Afficher une entrée spécifique")
     datas_id = st.number_input("ID de l'entrée", min_value=1, step=1)
     if st.button("Rechercher"):
         try:
+            # Récupération de l'entrée spécifique depuis l'API
             response = requests.get(f"{API_URL}/datasasia/{datas_id}")
             if response.status_code == 200:
-                st.write(response.json())
+                data = response.json()
+                st.json(data)
                 logger.info(f"Entrée avec ID {datas_id} récupérée avec succès.")
             else:
                 st.error(f"Erreur : {response.status_code} - {response.text}")
                 logger.error(f"Erreur lors de la récupération de l'entrée {datas_id} : {response.text}")
         except Exception as e:
             st.error(f"Erreur de connexion à l'API : {e}")
-            logger.exception(f"Erreur de connexion à l'API lors de la récupération de l'entrée {datas_id}")
+            logger.exception(f"Erreur lors de la récupération de l'entrée {datas_id}.")
 
+# **Ajouter une nouvelle entrée**
 elif option == "Ajouter une entrée":
     st.header("Ajouter une nouvelle entrée")
-    adresse = st.text_input("Adresse")
-    annee = st.number_input("Année", min_value=1900, max_value=2100, step=1)
-    code_commune = st.number_input("Code Commune", min_value=0, step=1)
-    nom_commune = st.text_input("Nom Commune")
-    segment_de_client = st.text_input("Segment de Client")
-    code_departement = st.number_input("Code Département", min_value=0, step=1)
-    code_region = st.number_input("Code Région", min_value=0, step=1)
-    nombre_de_logements = st.number_input("Nombre de Logements", min_value=0, step=1)
-    consommation_annuelle_totale = st.number_input("Consommation Annuelle Totale")
-    consommation_annuelle_moyenne_par_logement = st.number_input("Consommation Moyenne par Logement")
-    consommation_annuelle_moyenne_commune = st.number_input("Consommation Moyenne Commune")
-    
+    datetime_input = st.text_input("Datetime (format : YYYY-MM-DD HH:MM:SS)")
+    temperature = st.number_input("Temperature (°C)", format="%.2f")
+    humidity = st.number_input("Humidity (%)", format="%.2f")
+    windspeed = st.number_input("WindSpeed (m/s)", format="%.2f")
+    general_diffuse_flows = st.number_input("General Diffuse Flows", format="%.2f")
+    diffuse_flows = st.number_input("Diffuse Flows", format="%.2f")
+    power_consumption_zone1 = st.number_input("Power Consumption Zone 1 (kWh)", format="%.2f")
+    power_consumption_zone2 = st.number_input("Power Consumption Zone 2 (kWh)", format="%.2f")
+    power_consumption_zone3 = st.number_input("Power Consumption Zone 3 (kWh)", format="%.2f")
+
     if st.button("Ajouter"):
         data = {
-            "adresse": adresse,
-            "annee": annee,
-            "code_commune": code_commune,
-            "nom_commune": nom_commune,
-            "segment_de_client": segment_de_client,
-            "code_departement": code_departement,
-            "code_region": code_region,
-            "nombre_de_logements": nombre_de_logements,
-            "consommation_annuelle_totale": consommation_annuelle_totale,
-            "consommation_annuelle_moyenne_par_logement": consommation_annuelle_moyenne_par_logement,
-            "consommation_annuelle_moyenne_commune": consommation_annuelle_moyenne_commune,
+            "datetime": datetime_input,
+            "temperature": temperature,
+            "humidity": humidity,
+            "windspeed": windspeed,
+            "general_diffuse_flows": general_diffuse_flows,
+            "diffuse_flows": diffuse_flows,
+            "power_consumption_zone1": power_consumption_zone1,
+            "power_consumption_zone2": power_consumption_zone2,
+            "power_consumption_zone3": power_consumption_zone3
         }
         try:
             response = requests.post(f"{API_URL}/datasasia", json=data)
             if response.status_code == 200:
-                st.success("Entrée ajoutée avec succès!")
+                st.success("Entrée ajoutée avec succès.")
                 logger.info("Nouvelle entrée ajoutée avec succès.")
             else:
                 st.error(f"Erreur : {response.status_code} - {response.text}")
                 logger.error(f"Erreur lors de l'ajout d'une entrée : {response.text}")
         except Exception as e:
             st.error(f"Erreur de connexion à l'API : {e}")
-            logger.exception("Erreur de connexion à l'API lors de l'ajout d'une entrée")
+            logger.exception("Erreur lors de l'ajout d'une entrée.")
 
+# **Supprimer une entrée**
 elif option == "Supprimer une entrée":
     st.header("Supprimer une entrée")
     datas_id = st.number_input("ID de l'entrée à supprimer", min_value=1, step=1)
@@ -114,74 +130,73 @@ elif option == "Supprimer une entrée":
         try:
             response = requests.delete(f"{API_URL}/datasasia/{datas_id}")
             if response.status_code == 200:
-                st.success("Entrée supprimée avec succès!")
+                st.success("Entrée supprimée avec succès.")
                 logger.info(f"Entrée avec ID {datas_id} supprimée avec succès.")
             else:
                 st.error(f"Erreur : {response.status_code} - {response.text}")
                 logger.error(f"Erreur lors de la suppression de l'entrée {datas_id} : {response.text}")
         except Exception as e:
             st.error(f"Erreur de connexion à l'API : {e}")
-            logger.exception(f"Erreur de connexion à l'API lors de la suppression de l'entrée {datas_id}")
+            logger.exception(f"Erreur lors de la suppression de l'entrée {datas_id}.")
 
+# **Visualisation des données**
 elif option == "Visualisations des Données":
-    st.header("Visualisations des Données de Consommation Énergétique")
+    st.header("Visualisations des Données")
     try:
         response = requests.get(f"{API_URL}/datasasia")
         if response.status_code == 200:
-            data = response.json()
-            df = pd.DataFrame(data)
+            data = pd.DataFrame(response.json())
             st.write("Données récupérées :")
-            st.dataframe(df)
+            st.dataframe(data)
 
+            # Graphique de visualisation
             graph_type = st.selectbox(
                 "Choisissez un type de graphique",
-                ["Histogramme", "Graphique Linéaire", "Graphique en Secteurs", "Nuage de Points"]
+                ["Histogramme", "Graphique Linéaire"]
             )
 
             if graph_type == "Histogramme":
-                st.subheader("Histogramme de la Consommation Moyenne")
-                fig = px.histogram(df, x="consommation_annuelle_moyenne_par_logement", title="Distribution des Consommations Moyennes")
+                st.subheader("Histogramme des températures")
+                fig = px.histogram(data, x="temperature", title="Distribution des températures")
                 st.plotly_chart(fig)
 
             elif graph_type == "Graphique Linéaire":
-                st.subheader("Évolution de la Consommation Totale")
-                fig = px.line(df, x="annee", y="consommation_annuelle_totale", title="Évolution de la Consommation Totale")
+                st.subheader("Évolution de la consommation Zone 1")
+                fig = px.line(data, x="datetime", y="power_consumption_zone1", title="Consommation Zone 1")
                 st.plotly_chart(fig)
-
-            elif graph_type == "Graphique en Secteurs":
-                st.subheader("Répartition des Consommations par Segment")
-                fig = px.pie(df, names="segment_de_client", values="consommation_annuelle_totale", title="Répartition des Consommations")
-                st.plotly_chart(fig)
-
-            elif graph_type == "Nuage de Points":
-                st.subheader("Relation entre Logements et Consommation Moyenne")
-                fig = px.scatter(df, x="nombre_de_logements", y="consommation_annuelle_moyenne_par_logement", title="Relation Logements vs Consommation")
-                st.plotly_chart(fig)
-
-            logger.info("Visualisations affichées avec succès.")
         else:
             st.error(f"Erreur : {response.status_code} - {response.text}")
             logger.error(f"Erreur lors de la récupération des données pour visualisation : {response.text}")
     except Exception as e:
         st.error(f"Erreur de connexion à l'API : {e}")
-        logger.exception("Erreur lors de la visualisation des données")
+        logger.exception("Erreur lors de la visualisation des données.")
 
+# **Prédictions**
 elif option == "Prédictions":
-    st.header("Prédictions sur la Consommation Moyenne")
-    annee = st.number_input("Année", min_value=1900, max_value=2100, step=1, value=2023)
-    nombre_de_logements = st.number_input("Nombre de Logements", min_value=1, step=1, value=10)
+    st.header("Prédictions sur la Consommation Énergétique")
+    datetime_input = st.date_input("Date", datetime.date.today())
+    time_input = st.time_input("Heure", datetime.datetime.now().time())
+    temperature = st.number_input("Temperature (°C)", format="%.2f")
+    humidity = st.number_input("Humidity (%)", format="%.2f")
+    windspeed = st.number_input("WindSpeed (m/s)", format="%.2f")
+    general_diffuse_flows = st.number_input("General Diffuse Flows", format="%.2f")
+    diffuse_flows = st.number_input("Diffuse Flows", format="%.2f")
 
-    if st.button("Faire une prédiction"):
-        input_data = {"Année": annee, "Nombre de Logements": nombre_de_logements}
+    if st.button("Prédire la consommation énergétique"):
         try:
-            response = requests.post(f"{API_URL}/predict", json=input_data)
-            if response.status_code == 200:
-                result = response.json()
-                st.success(f"Prédiction : {result['prediction']:.2f} kWh")
-                logger.info(f"Prédiction effectuée avec succès : {result}")
-            else:
-                st.error(f"Erreur : {response.status_code} - {response.text}")
-                logger.error(f"Erreur lors de la prédiction : {response.text}")
+            datetime_combined = datetime.datetime.combine(datetime_input, time_input)
+            input_data = pd.DataFrame({
+                "datetime": [datetime_combined.strftime("%Y-%m-%d %H:%M:%S")],
+                "temperature": [temperature],
+                "humidity": [humidity],
+                "windspeed": [windspeed],
+                "general_diffuse_flows": [general_diffuse_flows],
+                "diffuse_flows": [diffuse_flows]
+            })
+            input_data_model = input_data.drop(columns=["datetime"])
+            prediction = model.predict(input_data_model)
+            st.success(f"Prédiction : La consommation énergétique prévue est de {prediction[0]:.2f} kWh")
+            logger.info(f"Prédiction réussie : {prediction[0]:.2f} kWh")
         except Exception as e:
-            st.error(f"Erreur de connexion à l'API : {e}")
-            logger.exception("Erreur de connexion à l'API lors de la prédiction")
+            st.error(f"Erreur lors de la prédiction : {e}")
+            logger.exception("Erreur lors de la prédiction.")

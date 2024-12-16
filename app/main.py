@@ -4,7 +4,7 @@ from app.api.v1.routes import router as api_router
 from app.db.database import get_db, engine
 from app.models.datasasia import Base, Datasasia
 from app.schemas.datasasia import Datasasia as DatasasiaSchema, DatasasiaCreate, DatasasiaUpdate
-from app.ml.model import predict  # Fonction de prédiction
+from app.ml.model import predict  # Assurez-vous que cette fonction existe et est correcte
 import logging
 
 # Création des tables dans la base de données

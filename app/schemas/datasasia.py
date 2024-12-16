@@ -1,28 +1,32 @@
-from typing import Optional
 from pydantic import BaseModel
+from typing import Optional
 
 class DatasasiaBase(BaseModel):
-    adresse: Optional[str]
-    annee: Optional[int]
-    code_commune: Optional[int]
-    nom_commune: Optional[str]
-    segment_de_client: Optional[str]
-    code_departement: Optional[float]
-    code_region: Optional[float]
-    nombre_de_logements: Optional[int]
-    consommation_annuelle_totale: Optional[float]
-    consommation_annuelle_moyenne_par_logement: Optional[float]
-    consommation_annuelle_moyenne_commune: Optional[float]
+    datetime: str
+    temperature: float
+    humidity: float
+    windspeed: float
+    general_diffuse_flows: float
+    diffuse_flows: float
+    power_consumption_zone1: float
+    power_consumption_zone2: float
+    power_consumption_zone3: float
 
 class DatasasiaCreate(DatasasiaBase):
     pass
 
-class DatasasiaUpdate(DatasasiaBase):
-    """Permet de mettre à jour partiellement une entrée."""
-    pass
+class DatasasiaUpdate(BaseModel):
+    temperature: Optional[float]
+    humidity: Optional[float]
+    windspeed: Optional[float]
+    general_diffuse_flows: Optional[float]
+    diffuse_flows: Optional[float]
+    power_consumption_zone1: Optional[float]
+    power_consumption_zone2: Optional[float]
+    power_consumption_zone3: Optional[float]
 
 class Datasasia(DatasasiaBase):
     id: int
 
     class Config:
-        from_attributes = True
+        orm_mode = True
