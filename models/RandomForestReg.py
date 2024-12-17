@@ -10,7 +10,7 @@ import joblib
 import time
 
 # Lecture de data
-data = pd.read_csv("../Data/clean_data.csv", sep=',')
+data = pd.read_csv("../data/clean_data.csv", sep=',')
 
 # repartition de data train et test
 x= data[['Temperature', 'Humidity', 'WindSpeed','GeneralDiffuseFlows', 'DiffuseFlows']]
