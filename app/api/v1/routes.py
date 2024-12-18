@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from app.ml.model import predict  # Assurez-vous que le chemin est correct
+import pandas as pd  # Pour formater les données
 
 router = APIRouter()
 
@@ -19,7 +20,12 @@ def make_prediction(data: dict):
         dict: Résultat de la prédiction.
     """
     try:
-        result = predict(data)  # Appel de la fonction `predict` depuis `ml/model.py`
+        # Convertir les données en DataFrame ou tableau 2D
+        input_data = pd.DataFrame([data])
+
+        # Appel de la fonction `predict`
+        result = predict(input_data.values)  # Converti en tableau Numpy
+
         return {"prediction": result[0]}  # Retourne la première valeur de la prédiction
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

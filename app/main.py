@@ -4,7 +4,7 @@ from app.api.v1.routes import router as api_router
 from app.db.database import get_db, engine
 from app.models.datasasia import Base, Datasasia
 from app.schemas.datasasia import Datasasia as DatasasiaSchema, DatasasiaCreate, DatasasiaUpdate
-from app.ml.model import predict  # Assurez-vous que cette fonction existe et est correcte
+from app.ml.model import predict  # Fonction de prédiction
 import logging
 
 # Création des tables dans la base de données
@@ -85,21 +85,3 @@ def delete_data(datas_id: int, db: Session = Depends(get_db)):
     db.commit()
     return {"message": "Donnée supprimée avec succès"}
 
-# Route pour effectuer une prédiction
-@app.post("/predict")
-def make_prediction(data: dict):
-    """
-    Endpoint pour effectuer une prédiction.
-    Les données doivent inclure 'Année' et 'Nombre de Logements'.
-    """
-    logger.info(f"Requête de prédiction avec les données : {data}")
-    try:
-        prediction = predict(data)  # Utilise la fonction predict du modèle ML
-        logger.info(f"Prédiction réussie : {prediction[0]}")
-        return {"prediction": prediction[0]}
-    except ValueError as e:
-        logger.error(f"Erreur dans les données fournies : {e}")
-        raise HTTPException(status_code=400, detail="Données invalides pour la prédiction.")
-    except Exception as e:
-        logger.error(f"Erreur interne : {e}")
-        raise HTTPException(status_code=500, detail="Erreur interne pendant la prédiction.")
